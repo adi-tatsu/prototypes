@@ -709,7 +709,7 @@ function LoginModal(props) {
     ),
 
     // Reward feedback modal
-    claimedReward && e(RewardFeedbackModal,{reward:claimedReward,onClose:function(){setClaimedReward(false);props.onClose();}}),
+    claimedReward && e(RewardFeedbackModal,{reward:claimedReward,onClose:function(){setClaimedReward(false);}}),
 
     // Click anywhere to close hint
     !claimedReward && e('div',{className:'close-hint'},'Click anywhere to close')
