@@ -613,9 +613,7 @@ function EventDetailsPanel(props) {
 
 function RewardFeedbackModal(props) {
   var rewards = Array.isArray(props.reward) ? props.reward : [props.reward];
-  var titleText = rewards.length === 1
-    ? rewards[0].name + ' received!'
-    : 'Rewards collected!';
+  var titleText = 'Login Reward Collected';
   return e('div',{className:'reward-feedback-backdrop',onClick:props.onClose},
     e('div',{className:'reward-feedback',onClick:function(ev){ev.stopPropagation();}},
       e('div',{className:'rf-title'},titleText),
