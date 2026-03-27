@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trailbound — Daily Login Event Modal V2</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: #000; width: 100vw; height: 100vh; font-family: 'Nunito', sans-serif; }
+
+  .scale-wrapper { width: 1920px; height: 1080px; transform-origin: 0 0; position: absolute; }
+  .frame { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+  .bg-image { position: absolute; width: 3363px; height: 2230px; left: calc(50% - 61.5px); top: calc(50% + 176px); transform: translate(-50%, -50%); object-fit: cover; pointer-events: none; }
+  .caravan { position: absolute; top: 13.43%; left: 23.28%; right: 27.45%; bottom: 14.72%; pointer-events: none; }
+  .caravan img { width: 100%; height: 100%; object-fit: cover; }
+  .hud-component { position: absolute; left: 1225px; top: 48px; width: 695px; height: 96px; }
+  .hud-buttons { position: absolute; top: 0; left: 0; right: 119px; bottom: 0; display: flex; gap: 24px; align-items: center; }
+  .hud-btn { width: 96px; height: 96px; flex-shrink: 0; position: relative; }
+  .hud-btn img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+  /* === Backdrop (darken) === */
+  .modal-backdrop {
+    position: absolute; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    cursor: pointer;
+  }
+  .modal-backdrop::before {
+    content: ''; position: absolute; inset: 0;
+    background: #030303; opacity: 0.65;
+  }
+
+  /* === Popup (outer frame) === */
+  .popup {
+    width: 1440px; height: 840px; position: relative;
+    background: linear-gradient(to top, rgba(141,112,91,0.75), rgba(108,85,72,0.75));
+    border: 4px solid #212c3c; border-radius: 40px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: default;
+  }
+
+  /* === Inner cream panel === */
+  .popup-inner {
+    width: 1368px; height: 768px;
+    background: #fff7e6; border: 2px solid #cea98e; border-radius: 24px;
+    position: relative; overflow: hidden;
+  }
+
+  /* === Left Art Panel === */
+  .art-panel {
+    position: absolute; left: 40px; top: 50%; transform: translateY(-50%);
+    width: 406px; height: 688px;
+    border: 8px solid #cea98e; border-radius: 24px;
+    overflow: visible; z-index: 2;
+  }
+  .art-panel-inner {
+    width: 100%; height: 100%; border-radius: 16px; overflow: hidden; position: relative;
+  }
+  .art-panel-sky {
+    position: absolute; left: -5px; top: -10px; width: 381px; height: 259px;
+    background: linear-gradient(to bottom, #9fddfd 35%, rgba(159,221,253,0) 65%);
+  }
+  .art-panel-characters {
+    position: absolute; left: -97px; top: 73px; width: 593px; height: 593px;
+    object-fit: cover; pointer-events: none;
+  }
+  .art-panel-sparkle {
+    position: absolute; left: 50%; top: 40px; transform: translateX(-50%);
+    width: 96px; height: 83px; pointer-events: none;
+  }
+  .art-panel-glass {
+    position: absolute; inset: 0; opacity: 0.7;
+    background: linear-gradient(119.5deg, transparent 10.5%, transparent 50%, white 50%, transparent 77.5%);
+    pointer-events: none;
+  }
+  /* Decorative ornaments */
+  .art-ornament-top {
+    position: absolute; left: 50%; top: -18px; transform: translateX(-50%);
+    width: 30px; height: 36px; z-index: 3;
+  }
+  .art-ornament-bottom {
+    position: absolute; left: 50%; bottom: -18px; transform: translateX(-50%);
+    width: 30px; height: 36px; z-index: 3;
+  }
+  .art-ornament-top img, .art-ornament-bottom img {
+    width: 150%; height: 144%; position: absolute;
+    left: -25%; top: -22%;
+  }
+  .art-ornament-bottom img {
+    left: -25%; top: -11%; width: 149%; height: 144%;
+  }
+
+  /* === Right Content === */
+  .right-content {
+    position: absolute; left: 480px; top: 50%; transform: translateY(-50%);
+    width: 848px; display: flex; flex-direction: column; gap: 24px;
+  }
+
+  /* === Event Title === */
+  .event-header { display: flex; flex-direction: column; gap: 8px; }
+  .event-title {
+    font-size: 64px; font-weight: 800; color: #e07324;
+    letter-spacing: -1.28px; line-height: 72px;
+  }
+  .event-subtitle {
+    font-size: 32px; font-weight: 700; color: #6c5548;
+    letter-spacing: -0.32px; line-height: 40px;
+  }
+
+  /* === Help Button === */
+  .help-btn {
+    position: absolute; right: 40px; top: 40px; width: 64px; height: 64px;
+    cursor: pointer; z-index: 5; border: none; padding: 0;
+    background: linear-gradient(to bottom, #c4a07a, #a8845e);
+    border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Nunito', sans-serif; font-size: 32px; font-weight: 800; color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: transform 0.1s;
+  }
+  .help-btn:hover { transform: scale(1.05); }
+  .help-btn:active { transform: scale(0.95); }
+
+  /* === Card Grid === */
+  .card-grid {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;
+    align-content: flex-start;
+  }
+
+  /* === Day Login Card (base) === */
+  .day-login-card {
+    width: 200px; border-radius: 24px; overflow: hidden;
+    padding: 12px; display: flex; flex-direction: column;
+    align-items: center; gap: 12px; position: relative;
+    background: #ead1b8; cursor: default;
+  }
+  .day-login-card-wrap {
+    position: relative; width: 200px; flex-shrink: 0;
+  }
+
+  .day-label {
+    font-size: 32px; font-weight: 800; color: #6c5548;
+    text-align: center; letter-spacing: -0.32px; line-height: 40px;
+  }
+
+  /* Item Card (128x128 container) */
+  .item-card {
+    width: 128px; height: 128px; position: relative; flex-shrink: 0;
+  }
+  .item-card-bg {
+    position: absolute; inset: 8px; border-radius: 16px;
+    border: 4px solid #b0896b;
+  }
+  .item-card-bg.common { background: #EFFBBA; }
+  .item-card-bg.uncommon { background: #EFFBBA; }
+  .item-card-bg.rare { background: #BBF4F5; }
+  .item-card-bg.epic { background: #EED3FF; }
+  .item-card-bg.exclusive { background: #FFD699; }
+
+  .item-card-icon {
+    position: absolute; inset: 3.13%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; pointer-events: none;
+  }
+  .item-card-icon img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .item-card-qty {
+    position: absolute; bottom: 16px; right: 16px;
+    font-size: 28px; font-weight: 800; color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    letter-spacing: -0.28px; line-height: 36px;
+  }
+  .item-card-badge {
+    position: absolute; right: 8px; top: -4px; width: 32px; height: 32px;
+  }
+  .item-card-badge img { width: 100%; height: 100%; }
+
+  .day-status {
+    font-size: 28px; font-weight: 800; letter-spacing: -0.28px; line-height: 36px;
+    color: #6c5548;
+  }
+
+  /* === STATE: Missed === */
+  .day-login-card.missed {
+    background: #fff7e6; border: 4px solid #ead1b8;
+  }
+  .day-login-card.missed .day-status { color: #c54a3e; }
+
+  /* === STATE: Claimed === */
+  .day-login-card-wrap.claimed-wrap .day-login-card {
+    opacity: 0.4; background: #ead1b8;
+  }
+  .claimed-stamp {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 120px; height: 120px; z-index: 5; pointer-events: none;
+  }
+  .claimed-stamp img { width: 100%; height: 100%; object-fit: contain; }
+
+  /* === STATE: Claimable === */
+  .day-login-card.claimable {
+    background: #ffd699; border: 4px solid #e07324;
+    cursor: pointer;
+  }
+  .day-login-card.claimable .day-status { color: #e07324; }
+  .day-login-card-wrap.claimable-wrap {
+    position: relative;
+  }
+  /* Outer glow border */
+  .claimable-outer-border {
+    position: absolute; inset: -10px; border: 4px solid #ffd699;
+    border-radius: 32px; pointer-events: none;
+    animation: claimableGlow 2s ease-in-out infinite;
+  }
+  @keyframes claimableGlow {
+    0%, 100% { border-color: rgba(255,214,153,0.6); box-shadow: 0 0 20px rgba(224,115,36,0.3); }
+    50% { border-color: rgba(255,214,153,1); box-shadow: 0 0 40px rgba(224,115,36,0.5), 0 0 80px rgba(224,115,36,0.2); }
+  }
+  /* Shimmer effect */
+  .claimable-shimmer {
+    position: absolute; inset: -10px; border-radius: 32px;
+    overflow: hidden; pointer-events: none;
+  }
+  .claimable-shimmer::before {
+    content: ''; position: absolute; inset: -50%;
+    background: conic-gradient(from 0deg, transparent 0%, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%, transparent 100%);
+    animation: shimmerSpin 3s linear infinite;
+  }
+  @keyframes shimmerSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  /* Sparkle particles on claimable */
+  .claimable-sparkle {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    background: #faf093; pointer-events: none;
+    animation: sparkleFloat 2s ease-in-out infinite;
+  }
+  .claimable-sparkle:nth-child(1) { top: -5px; left: 30%; animation-delay: 0s; }
+  .claimable-sparkle:nth-child(2) { top: 20%; right: -5px; animation-delay: 0.5s; }
+  .claimable-sparkle:nth-child(3) { bottom: -5px; right: 30%; animation-delay: 1s; }
+  .claimable-sparkle:nth-child(4) { bottom: 20%; left: -5px; animation-delay: 1.5s; }
+  @keyframes sparkleFloat {
+    0%, 100% { opacity: 0.3; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* === STATE: Ongoing (upcoming/locked) === */
+  .day-login-card.ongoing { background: #ead1b8; }
+  .lock-icon {
+    position: absolute; right: -8px; top: -8px; width: 32px; height: 32px; z-index: 3;
+  }
+  .lock-icon img { width: 100%; height: 100%; }
+
+  /* === Day 7 Big Card === */
+  .day-login-card-wrap.big-card { width: 416px; }
+  .day-login-card-wrap.big-card .day-login-card { width: 416px; }
+  .day-login-card-wrap.big-card .mascots {
+    position: absolute; bottom: 12px; left: 0; right: 0; height: 140px;
+    overflow: visible; pointer-events: none; z-index: 2;
+  }
+  .mascot-left {
+    position: absolute; left: 20px; bottom: -10px; width: 120px; height: 140px;
+    transform: scaleX(-1);
+  }
+  .mascot-right {
+    position: absolute; right: 20px; bottom: -10px; width: 120px; height: 155px;
+  }
+
+  /* === Click anywhere to close === */
+  .close-hint {
+    font-size: 28px; font-weight: 700; color: #fff7e6;
+    letter-spacing: -0.28px; line-height: 36px; text-align: center;
+    pointer-events: none; position: relative; z-index: 1;
+  }
+
+  /* === HUD badge === */
+  .hud-badge {
+    position: absolute; bottom: 48px; right: 140px; z-index: 30;
+    width: 56px; height: 56px; border-radius: 12px;
+    background: linear-gradient(to bottom, #f09030, #d06020);
+    border: 3px solid #a04010; box-shadow: 0 3px 0 0 #803010;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; cursor: pointer; transition: transform 0.1s;
+    animation: hudGlow 2s ease-in-out infinite;
+  }
+  .hud-badge:active { transform: scale(0.9); }
+  @keyframes hudGlow {
+    0%, 100% { box-shadow: 0 3px 0 0 #803010, 0 0 12px rgba(240,144,48,0.4); }
+    50% { box-shadow: 0 3px 0 0 #803010, 0 0 20px rgba(240,144,48,0.6); }
+  }
+
+  /* === Claim flash animations === */
+  .claim-flash {
+    position: absolute; inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 20px; overflow: hidden; animation: flashIn 0.3s ease;
+  }
+  .claim-flash-content { text-align: center; position: relative; z-index: 2; }
+  .claim-flash-icon { font-size: 48px; }
+  .claim-flash-text { font-size: 14px; font-weight: 800; color: #34794b; margin-top: 4px; }
+  .claim-flash.r-common { background: rgba(239,251,186,0.92); }
+  .claim-flash.r-common .claim-flash-icon { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .claim-flash.r-uncommon { background: rgba(239,251,186,0.92); }
+  .claim-flash.r-uncommon .claim-flash-icon { animation: popBounce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+  .claim-flash.r-rare { background: rgba(187,244,245,0.92); }
+  .claim-flash.r-rare .claim-flash-content { animation: cardFlip 0.7s ease; }
+  .claim-flash.r-epic { background: rgba(238,211,255,0.92); }
+  .claim-flash.r-epic .claim-flash-content { animation: cardFlip 0.7s ease; }
+  .claim-flash.r-epic::before, .claim-flash.r-epic::after { content: ''; position: absolute; inset: -20px; z-index: 1; background: radial-gradient(circle, rgba(238,211,255,0.6) 0%, transparent 70%); animation: particleBurst 1s ease-out; }
+  .claim-flash.r-epic::after { animation-delay: 0.15s; transform: rotate(45deg); }
+  .claim-flash.r-exclusive { background: rgba(255,214,153,0.95); }
+  .claim-flash.r-exclusive .claim-flash-content { animation: celebrationPop 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+  .claim-flash.r-exclusive::before { content: ''; position: absolute; inset: -30px; z-index: 1; background: radial-gradient(circle, rgba(255,214,153,0.8) 0%, rgba(240,144,48,0.3) 40%, transparent 70%); animation: celebrationRing 1.2s ease-out; }
+  .claim-flash.r-exclusive .claim-flash-text { color: #8d5a1f; }
+  .claim-particles { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+  .particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; animation: particleFly 0.8s ease-out forwards; }
+
+  @keyframes flashIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes popBounce { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+  @keyframes cardFlip { 0% { transform: perspective(400px) rotateY(90deg); opacity: 0; } 40% { transform: perspective(400px) rotateY(-10deg); opacity: 1; } 60% { transform: perspective(400px) rotateY(5deg); } 100% { transform: perspective(400px) rotateY(0); } }
+  @keyframes particleBurst { 0% { transform: scale(0.3); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
+  @keyframes celebrationPop { 0% { transform: scale(0); opacity: 0; } 40% { transform: scale(1.3); opacity: 1; } 60% { transform: scale(0.85); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+  @keyframes celebrationRing { 0% { transform: scale(0.2); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+  @keyframes particleFly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--dx,20px),var(--dy,20px)) scale(0.3); opacity: 0; } }
+
+  /* === Reward Feedback Modal (post-claim) === */
+  .reward-feedback-backdrop {
+    position: absolute; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    background: rgba(33,44,60,0.75); animation: flashIn 0.3s ease; cursor: pointer;
+  }
+  .reward-feedback {
+    width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 128px; position: relative;
+    background: linear-gradient(to top, rgba(141,112,91,0.85), rgba(108,85,72,0.85));
+    border-top: 6px solid #cea98e; border-bottom: 6px solid #cea98e;
+    animation: celebrationPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .reward-feedback .rf-title {
+    font-size: 48px; font-weight: 800; color: #faf093; text-align: center;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4); letter-spacing: -1px;
+  }
+  .reward-feedback .rf-glitter { display: flex; gap: 10px; align-items: center; margin: 8px 0 16px; }
+  .reward-feedback .rf-glitter-star { width: 24px; height: 24px; opacity: 0.6; }
+  .reward-feedback .rf-items { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .reward-feedback .rf-item {
+    width: 100px; height: 100px; border-radius: 12px; border: 3px solid #b0896b;
+    display: flex; align-items: center; justify-content: center; font-size: 40px; position: relative;
+  }
+  .reward-feedback .rf-item .rf-new-badge {
+    position: absolute; top: -6px; right: -6px; background: #c54a3e; color: white;
+    font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px;
+  }
+  .reward-feedback .rf-dismiss {
+    color: rgba(234,209,184,0.5); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.5px; pointer-events: none;
+  }
+
+  /* === Event Details Sub-Panel === */
+  .details-overlay { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(33,44,60,0.5); animation: flashIn 0.2s ease; border-radius: 24px; }
+  .details-panel { background: #fff7e6; border: 3px solid #cea98e; border-radius: 16px; width: 480px; max-height: 80%; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.3); animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .details-header { background: linear-gradient(to bottom, rgba(141,112,91,0.9), rgba(108,85,72,0.9)); padding: 12px 16px; border-radius: 13px 13px 0 0; display: flex; align-items: center; justify-content: space-between; }
+  .details-header h3 { font-size: 16px; font-weight: 800; color: #faf093; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+  .details-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(to bottom, #e85050, #c03030);
+    border: 2px solid #a02020; box-shadow: 0 2px 0 0 #801818;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: white; font-size: 16px; font-weight: 800;
+    font-family: 'Nunito', sans-serif; line-height: 1;
+  }
+  .details-body { padding: 16px 20px; }
+  .details-lore { background: linear-gradient(to bottom, rgba(234,209,184,0.4), rgba(234,209,184,0.2)); border: 1px solid #ead1b8; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; font-style: italic; color: #6c5548; line-height: 1.5; }
+  .details-section { margin-bottom: 14px; }
+  .details-section h4 { font-size: 12px; font-weight: 800; color: #8d705b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .details-rule { font-size: 12px; color: #6c5548; line-height: 1.5; padding: 4px 0 4px 14px; position: relative; }
+  .details-rule::before { content: '\2022'; position: absolute; left: 0; color: #b0896b; font-weight: 800; }
+  .details-duration { display: flex; gap: 12px; margin-top: 4px; }
+  .details-duration-item { flex: 1; background: rgba(234,209,184,0.3); border: 1px solid #ead1b8; border-radius: 8px; padding: 8px 12px; text-align: center; }
+  .details-duration-item .dd-label { font-size: 10px; font-weight: 700; color: #b0896b; text-transform: uppercase; }
+  .details-duration-item .dd-value { font-size: 14px; font-weight: 800; color: #6c5548; margin-top: 2px; }
+
+  /* === Edge Case Side Panel === */
+  .edge-panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: row; font-family: 'Nunito', sans-serif; }
+  .edge-panel-drawer { width: 340px; height: 100%; background: rgba(33,44,60,0.95); border-right: 3px solid #b0896b; overflow-y: auto; padding: 16px 14px; transform: translateX(-100%); transition: transform 0.25s ease; }
+  .edge-panel.open .edge-panel-drawer { transform: translateX(0); }
+  .edge-panel-toggle { width: 36px; height: 100px; align-self: center; background: rgba(33,44,60,0.9); border: 2px solid #b0896b; border-left: none; border-radius: 0 10px 10px 0; color: #fff7e6; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Nunito', sans-serif; font-weight: 700; writing-mode: vertical-rl; letter-spacing: 1px; transition: background 0.15s; }
+  .edge-panel-toggle:hover { background: rgba(108,85,72,0.9); }
+  .edge-panel-title { font-size: 14px; font-weight: 800; color: #faf093; text-shadow: 0 1px 3px rgba(0,0,0,0.35); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid rgba(176,137,107,0.4); }
+  .edge-case-item { background: rgba(255,247,230,0.08); border: 1px solid rgba(176,137,107,0.3); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+  .edge-case-item:hover { background: rgba(255,247,230,0.15); border-color: #b0896b; }
+  .edge-case-item.active { background: rgba(224,123,57,0.2); border-color: #e07b39; }
+  .edge-case-item h4 { font-size: 12px; font-weight: 800; color: #fff7e6; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .edge-case-item h4 .ec-num { background: #b0896b; color: #fff7e6; border-radius: 4px; font-size: 10px; padding: 1px 5px; font-weight: 800; flex-shrink: 0; }
+  .edge-case-item.active h4 .ec-num { background: #e07b39; }
+  .edge-case-item p { font-size: 10px; font-weight: 600; color: rgba(234,209,184,0.75); line-height: 1.35; margin-left: 30px; }
+  .edge-case-reset { margin-top: 6px; padding: 8px 0; width: 100%; border-radius: 8px; background: linear-gradient(to bottom, rgba(141,112,91,0.5), rgba(108,85,72,0.5)); border: 1px solid rgba(176,137,107,0.4); color: #ead1b8; font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .edge-case-reset:hover { background: linear-gradient(to bottom, rgba(141,112,91,0.7), rgba(108,85,72,0.7)); }
+
+  /* Event ended notice */
+  .event-ended-notice {
+    position: absolute; bottom: 48px; right: 140px; z-index: 30;
+    background: rgba(33,44,60,0.8); border-radius: 12px; padding: 12px 20px;
+    border: 2px solid #b0896b; color: #ead1b8; font-size: 14px; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="scale-wrapper" id="scaleWrapper">
+  <div class="frame" id="app"></div>
+</div>
+<div id="edge-panel-root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<script>
+var e = React.createElement;
+var useState = React.useState;
+var useRef = React.useRef;
+var useEffect = React.useEffect;
+
+// === Figma Assets ===
+var ASSETS = {
+  characters: 'https://www.figma.com/api/mcp/asset/a5619417-c3d3-4d1a-a71c-2dab58fe617a',
+  sparkle: 'https://www.figma.com/api/mcp/asset/028062f7-e6d6-4394-9a3a-89a0e4dae179',
+  ornamentTop: 'https://www.figma.com/api/mcp/asset/d7cc9151-05b8-4b62-87f2-cf00567d9b33',
+  ornamentBottom: 'https://www.figma.com/api/mcp/asset/7f33df09-eed8-4066-8208-d4e5fe12a425',
+  stamp: 'https://www.figma.com/api/mcp/asset/a0e195a1-0de7-44b2-809c-3b6196b4c541',
+  lockIcon: 'https://www.figma.com/api/mcp/asset/9979aa06-76aa-49e5-8cb8-01ce235debc3',
+  helpBtn: 'https://www.figma.com/api/mcp/asset/44e1e037-6ba9-40f1-b877-3e0b6d4bc4cb',
+  helpBtn2: 'https://www.figma.com/api/mcp/asset/7a91ab23-7d96-4e5c-a3d2-9851cd871dd1',
+  helpQuestion: 'https://www.figma.com/api/mcp/asset/3e003074-0ac8-4757-b845-0036be2548b3',
+  chiibear1: 'https://www.figma.com/api/mcp/asset/fe8c4257-21f1-4d53-88b5-a10e54cba261',
+  chiibear2: 'https://www.figma.com/api/mcp/asset/0e1e9a44-fbc8-4bc0-959b-041e9520969c',
+  coinIcon: 'https://www.figma.com/api/mcp/asset/98c0f5c7-9973-4262-bea7-ea8b7c09a2b8',
+  glitter: 'https://www.figma.com/api/mcp/asset/bfb8895f-a4a8-4a52-affe-37839e68e83c',
+  bg: 'https://www.figma.com/api/mcp/asset/351518a8-3643-4bee-8bf0-79ab80eda62a',
+  caravan: 'https://www.figma.com/api/mcp/asset/f0d8a025-d814-44fe-9ba2-3fc7778a7ffe',
+};
+
+// === Event Data ===
+var EVENT = {
+  event_name: "10th Tatsu Anniversary",
+  total_days: 7,
+  lore_blurb: "The lanterns are lit and fortune smiles on those who return each day!",
+  reward_track: [
+    { day:1, rarity:"common",   cat:"Gold",      name:"500 Gold",          icon:"\u{1FA99}", qty:"500" },
+    { day:2, rarity:"common",   cat:"Material",  name:"3x Wood + 3x Textile", icon:"\u{1FAB5}", qty:"x6" },
+    { day:3, rarity:"uncommon", cat:"Pack",      name:"1x Trinket Pack",   icon:"\u{1F381}", qty:"x1" },
+    { day:4, rarity:"uncommon", cat:"Gold",      name:"1,000 Gold",        icon:"\u{1FA99}", qty:"1K" },
+    { day:5, rarity:"rare",     cat:"Material",  name:"3x Mineral + 2x Textile", icon:"\u{1F48E}", qty:"x5" },
+    { day:6, rarity:"rare",     cat:"Pack",      name:"1x Location Pack",  icon:"\u{1F30F}", qty:"x1" },
+    { day:7, rarity:"exclusive",cat:"Pet",       name:"Lucky Koi Pet",     icon:"\u{1F420}", qty:"x1", milestone:true },
+  ]
+};
+
+var CLAIMED_INIT = [1,2,3,4];
+var CURRENT_DAY = 5;
+
+// Cross-root state
+var _listeners = [];
+var _activeCase = 'default';
+function getActiveCase() { return _activeCase; }
+function setActiveCase(id) { _activeCase = id; _listeners.forEach(function(fn) { fn(id); }); }
+function onActiveCaseChange(fn) { _listeners.push(fn); return function() { _listeners = _listeners.filter(function(f) { return f !== fn; }); }; }
+
+var EDGE_CASES = [
+  { id:'default', title:'Default state', desc:'Days 1\u20134 claimed, Day 5 claimable.', claimed:[1,2,3,4], currentDay:5, eventActive:true, eventName:'10th Tatsu Anniversary' },
+  { id:'already-claimed', title:'Already claimed today', desc:'Player opens a second time. "Claimed" state, no dupe.', claimed:[1,2,3,4,5], currentDay:5, eventActive:true, eventName:'10th Tatsu Anniversary' },
+  { id:'mid-event-join', title:'Joins mid-event (Day 5)', desc:'First login Day 5 of 7. Days 1\u20134 missed.', claimed:[], currentDay:5, eventActive:true, eventName:'10th Tatsu Anniversary' },
+  { id:'missed-days', title:'Missed several days', desc:'Logged Days 1, 2, 5 only. 3 claimed, track doesn\u2019t reset.', claimed:[1,2,5], currentDay:6, eventActive:true, eventName:'10th Tatsu Anniversary' },
+  { id:'all-claimed', title:'All 7 days claimed', desc:'Full completion. All green.', claimed:[1,2,3,4,5,6,7], currentDay:7, eventActive:true, eventName:'10th Tatsu Anniversary' },
+  { id:'day-one', title:'First day of event', desc:'Day 1 claimable, rest locked.', claimed:[], currentDay:1, eventActive:true, eventName:'10th Tatsu Anniversary' },
+];
+
+var RARITY_LABELS = {common:'Common',uncommon:'Uncommon',rare:'Rare',epic:'Epic',exclusive:'Event Exclusive'};
+var RARITY_BGS = {common:'#EFFBBA',uncommon:'#EFFBBA',rare:'#BBF4F5',epic:'#EED3FF',exclusive:'#FFD699'};
+
+var PARTICLE_COLORS = { epic:['#EED3FF','#c98aff','#9b59b6','#fff'], exclusive:['#FFD699','#f09030','#e07b39','#faf093','#fff'] };
+function makeParticles(rarity) {
+  var colors = PARTICLE_COLORS[rarity] || PARTICLE_COLORS.epic;
+  var p = [];
+  for (var i = 0; i < 12; i++) {
+    var a = (i/12)*360, d = 30+Math.random()*25;
+    var dx = Math.cos(a*Math.PI/180)*d, dy = Math.sin(a*Math.PI/180)*d;
+    p.push(e('div',{key:i,className:'particle',style:{width:(4+Math.random()*4)+'px',height:(4+Math.random()*4)+'px',background:colors[Math.floor(Math.random()*colors.length)],left:'50%',top:'50%','--dx':dx+'px','--dy':dy+'px',animation:'particleFly 0.7s ease-out '+(i*30)+'ms forwards'}}));
+  }
+  return e('div',{className:'claim-particles'},p);
+}
+
+// === Components ===
+
+function App() {
+  var s = useState(true); var open = s[0]; var setOpen = s[1];
+  var s4 = useState(getActiveCase()); var activeCase = s4[0]; var localSetCase = s4[1];
+  useEffect(function() {
+    return onActiveCaseChange(function(id) {
+      localSetCase(id);
+      var sc = EDGE_CASES.find(function(c){return c.id===id;});
+      if (sc && sc.eventActive) { setOpen(true); } else { setOpen(false); }
+    });
+  }, []);
+  var scenario = EDGE_CASES.find(function(c){return c.id===activeCase;}) || EDGE_CASES[0];
+  return e('div',{style:{width:'1920px',height:'1080px',position:'relative'}},
+    e('img',{className:'bg-image',src:ASSETS.bg,alt:''}),
+    e('div',{className:'caravan'},e('img',{src:ASSETS.caravan,alt:''})),
+    e('div',{className:'hud-component'},e('div',{className:'hud-buttons'},
+      // Calendar button (triggers popup)
+      e('div',{key:'cal',className:'hud-btn',style:{cursor:'pointer'},onClick:function(){if(!open&&scenario.eventActive)setOpen(true);}},
+        e('div',{style:{position:'absolute',background:'#cea98e',height:'42px',left:'16px',top:'37px',width:'63px'}}),
+        e('img',{src:'https://www.figma.com/api/mcp/asset/b67dccdd-618c-4873-9edf-be77613c8b84',alt:'',style:{position:'absolute',inset:'13.5%',width:'73%',height:'73%',objectFit:'contain'}})
+      ),
+      // Shop, Card, Edit, Bag, Menu
+      ['94de0974-6537-4fa2-a3e1-4b06dad6c0e8','9893e57c-9c2f-4826-814e-b41baa9bbd27','3ffc5551-3132-4c6d-bf9f-d9c5cda6256a','9574d0c1-8720-4035-ade9-20b61e91f011','6558a729-476b-45b9-9802-f2b67ec528cd'].map(function(id,i){return e('div',{key:i,className:'hud-btn'},e('img',{src:'https://www.figma.com/api/mcp/asset/'+id,alt:''}));})
+    )),
+    scenario.eventActive && open && e(LoginModal,{key:activeCase,onClose:function(){setOpen(false);},claimedInit:scenario.claimed,currentDay:scenario.currentDay,eventName:scenario.eventName}),
+    !scenario.eventActive && e('div',{className:'event-ended-notice'},'Event has ended \u2014 no modal shown')
+  );
+}
+
+function ArtPanel() {
+  return e('div',{className:'art-panel'},
+    e('div',{className:'art-ornament-top'},e('img',{src:ASSETS.ornamentTop,alt:''})),
+    e('div',{className:'art-ornament-bottom'},e('img',{src:ASSETS.ornamentBottom,alt:''})),
+    e('div',{className:'art-panel-inner'},
+      e('div',{className:'art-panel-sky'}),
+      e('img',{className:'art-panel-characters',src:ASSETS.characters,alt:''}),
+      e('img',{className:'art-panel-sparkle',src:ASSETS.sparkle,alt:''}),
+      e('div',{className:'art-panel-glass'})
+    )
+  );
+}
+
+function HelpButton(props) {
+  return e('button',{className:'help-btn',onClick:props.onClick},'?');
+}
+
+function ItemCard(props) {
+  var r = props.reward;
+  var state = props.state;
+  return e('div',{className:'item-card'},
+    e('div',{className:'item-card-bg '+r.rarity}),
+    e('div',{className:'item-card-icon'},r.icon),
+    e('div',{className:'item-card-qty'},r.qty),
+    state==='ongoing' && e('div',{className:'lock-icon'},e('img',{src:ASSETS.lockIcon,alt:''}))
+  );
+}
+
+function DayCard(props) {
+  var r = props.reward;
+  var state = props.state;
+  var isBig = r.milestone;
+  var isAnim = props.animDay === r.day;
+  var wrapClass = 'day-login-card-wrap'+(isBig?' big-card':'');
+  if (state==='claimed') wrapClass += ' claimed-wrap';
+  if (state==='claimable') wrapClass += ' claimable-wrap';
+
+  var cardClass = 'day-login-card';
+  if (state==='missed') cardClass += ' missed';
+  else if (state==='claimable') cardClass += ' claimable';
+  else if (state==='ongoing') cardClass += ' ongoing';
+
+  return e('div',{className:wrapClass},
+    // Claimable outer border + VFX
+    state==='claimable' && e('div',{className:'claimable-outer-border'}),
+    state==='claimable' && e('div',{className:'claimable-shimmer'}),
+    state==='claimable' && e('div',{className:'claimable-sparkle'}),
+    state==='claimable' && e('div',{className:'claimable-sparkle'}),
+    state==='claimable' && e('div',{className:'claimable-sparkle'}),
+    state==='claimable' && e('div',{className:'claimable-sparkle'}),
+
+    e('div',{className:cardClass,onClick:state==='claimable'?props.onClaim:undefined},
+      e('div',{className:'day-label'},'Day '+r.day),
+      e(ItemCard,{reward:r,state:state}),
+      e('div',{className:'day-status'},
+        state==='missed'?'Missed':
+        state==='claimed'?'Claimed':
+        state==='claimable'?'Claimable':
+        'Ongoing'
+      )
+    ),
+
+    // Claimed stamp overlay
+    state==='claimed' && e('div',{className:'claimed-stamp'},e('img',{src:ASSETS.stamp,alt:''})),
+
+    // Day 7 mascots
+    isBig && e('div',{className:'mascots'},
+      e('img',{className:'mascot-left',src:ASSETS.chiibear1,alt:''}),
+      e('img',{className:'mascot-right',src:ASSETS.chiibear2,alt:''})
+    )
+  );
+}
+
+function EventDetailsPanel(props) {
+  return e('div',{className:'details-overlay',onClick:function(ev){if(ev.target===ev.currentTarget)props.onClose();}},
+    e('div',{className:'details-panel'},
+      e('div',{className:'details-header'},
+        e('h3',null,'\u{1F3EE} Event details'),
+        e('button',{className:'details-close',onClick:props.onClose},'\u00D7')
+      ),
+      e('div',{className:'details-body'},
+        e('div',{className:'details-lore'},'"',EVENT.lore_blurb,'"'),
+        e('div',{className:'details-section'},e('h4',null,'Event duration'),e('div',{className:'details-duration'},
+          e('div',{className:'details-duration-item'},e('div',{className:'dd-label'},'Start'),e('div',{className:'dd-value'},'Jan 15, 2026')),
+          e('div',{className:'details-duration-item'},e('div',{className:'dd-label'},'End'),e('div',{className:'dd-value'},'Jan 28, 2026')),
+          e('div',{className:'details-duration-item'},e('div',{className:'dd-label'},'Reward days'),e('div',{className:'dd-value'},EVENT.total_days+' days'))
+        )),
+        e('div',{className:'details-section'},e('h4',null,'How it works'),
+          e('div',{className:'details-rule'},'Open Trailbound each day to claim your daily reward.'),
+          e('div',{className:'details-rule'},'Rewards track total days logged in, not consecutive streaks.'),
+          e('div',{className:'details-rule'},'Missed days cannot be recovered \u2014 but your progress never resets.'),
+          e('div',{className:'details-rule'},'Daily reset happens at 00:00 UTC for all players.'),
+          e('div',{className:'details-rule'},'Event-exclusive items may rotate back in future events.')
+        ),
+        e('div',{className:'details-section'},e('h4',null,'Rarity guide'),e('div',{style:{display:'flex',gap:'6px',flexWrap:'wrap'}},
+          ['common','uncommon','rare','epic','exclusive'].map(function(r){return e('span',{key:r,style:{background:RARITY_BGS[r],padding:'3px 10px',borderRadius:'6px',fontSize:'11px',fontWeight:700,color:'#6c5548'}},RARITY_LABELS[r]);})
+        ))
+      )
+    )
+  );
+}
+
+function RewardFeedbackModal(props) {
+  var r = props.reward;
+  return e('div',{className:'reward-feedback-backdrop',onClick:props.onClose},
+    e('div',{className:'reward-feedback',onClick:function(ev){ev.stopPropagation();}},
+      e('div',{className:'rf-title'},r.name+' received!'),
+      e('div',{className:'rf-glitter'},
+        e('img',{className:'rf-glitter-star',src:ASSETS.glitter,alt:''}),
+        e('img',{className:'rf-glitter-star',src:ASSETS.glitter,alt:''}),
+        e('img',{className:'rf-glitter-star',src:ASSETS.glitter,alt:''})
+      ),
+      e('div',{className:'rf-items'},
+        e('div',{className:'rf-item',style:{background:RARITY_BGS[r.rarity]}},
+          r.icon,
+          e('div',{className:'rf-new-badge'},'New')
+        )
+      )
+    ),
+    e('div',{className:'rf-dismiss'},'Click anywhere to close')
+  );
+}
+
+function LoginModal(props) {
+  var curDay = props.currentDay || CURRENT_DAY;
+  var s1 = useState((props.claimedInit||CLAIMED_INIT).slice()); var claimed=s1[0]; var setClaimed=s1[1];
+  var s2 = useState(false); var animDay=s2[0]; var setAnimDay=s2[1];
+  var s3 = useState(false); var debouncing=s3[0]; var setDebouncing=s3[1];
+  var s4 = useState(false); var showDetails=s4[0]; var setShowDetails=s4[1];
+  var s5 = useState(false); var claimedReward=s5[0]; var setClaimedReward=s5[1];
+  var isTodayClaimed = claimed.indexOf(curDay) !== -1;
+
+  function handleClaim() {
+    if (debouncing||isTodayClaimed) return;
+    setDebouncing(true);
+    var reward = EVENT.reward_track[curDay-1];
+    // Immediately mark as claimed and show reward modal
+    setClaimed(function(p){return p.concat([curDay]);});
+    setTimeout(function(){
+      setDebouncing(false);
+      if(reward) setClaimedReward(reward);
+    }, 300);
+  }
+
+  function dayState(d) {
+    if(claimed.indexOf(d)!==-1)return 'claimed';
+    if(d===curDay)return 'claimable';
+    if(d<curDay)return 'missed';
+    return 'ongoing';
+  }
+
+  // Calculate remaining time display
+  var remainStr = 'Remaining: 7d 4h';
+
+  return e('div',{className:'modal-backdrop',onClick:function(ev){if(ev.target===ev.currentTarget)props.onClose();}},
+    e('div',{className:'popup',onClick:function(ev){ev.stopPropagation();}},
+      e('div',{className:'popup-inner'},
+        // Art panel (left)
+        e(ArtPanel),
+
+        // Help button (top-right)
+        e(HelpButton,{onClick:function(){setShowDetails(true);}}),
+
+        // Right content
+        e('div',{className:'right-content'},
+          // Event header
+          e('div',{className:'event-header'},
+            e('div',{className:'event-title'},props.eventName||EVENT.event_name),
+            e('div',{className:'event-subtitle'},remainStr)
+          ),
+          // Card grid
+          e('div',{className:'card-grid'},
+            EVENT.reward_track.map(function(r){
+              return e(DayCard,{
+                key:r.day, reward:r, state:dayState(r.day),
+                animDay:animDay, onClaim:handleClaim
+              });
+            })
+          )
+        ),
+
+        // Event details overlay
+        showDetails && e(EventDetailsPanel,{onClose:function(){setShowDetails(false);}})
+      )
+    ),
+
+    // Reward feedback modal
+    claimedReward && e(RewardFeedbackModal,{reward:claimedReward,onClose:function(){setClaimedReward(false);props.onClose();}}),
+
+    // Click anywhere to close hint
+    !claimedReward && e('div',{className:'close-hint'},'Click anywhere to close')
+  );
+}
+
+// === Edge Case Panel ===
+function EdgeCasePanelRoot() {
+  var s1 = useState(false); var panelOpen = s1[0]; var setPanelOpen = s1[1];
+  var s2 = useState(getActiveCase()); var ac = s2[0]; var ls = s2[1];
+  useEffect(function(){return onActiveCaseChange(function(id){ls(id);});},[]);
+  return e('div',{className:'edge-panel'+(panelOpen?' open':'')},
+    e('div',{className:'edge-panel-drawer'},
+      e('div',{className:'edge-panel-title'},'\u{1F9EA} Edge Case Testing'),
+      EDGE_CASES.map(function(ec,i){return e('div',{key:ec.id,className:'edge-case-item'+(ac===ec.id?' active':''),onClick:function(){setActiveCase(ec.id);}},e('h4',null,e('span',{className:'ec-num'},i+1),ec.title),e('p',null,ec.desc));}),
+      e('button',{className:'edge-case-reset',onClick:function(){setActiveCase('default');}},'\u21BA Reset to default')
+    ),
+    e('button',{className:'edge-panel-toggle',onClick:function(){setPanelOpen(!panelOpen);}},panelOpen?'\u25C0 Tests':'Tests \u25B6')
+  );
+}
+
+// === Mount ===
+ReactDOM.createRoot(document.getElementById('app')).render(e(App));
+ReactDOM.createRoot(document.getElementById('edge-panel-root')).render(e(EdgeCasePanelRoot));
+
+function scaleFrame() {
+  var w = document.getElementById('scaleWrapper');
+  var sx = window.innerWidth/1920, sy = window.innerHeight/1080, s = Math.min(sx,sy);
+  w.style.transform = 'scale('+s+')';
+  w.style.left = ((window.innerWidth-1920*s)/2)+'px';
+  w.style.top = ((window.innerHeight-1080*s)/2)+'px';
+}
+scaleFrame();
+window.addEventListener('resize', scaleFrame);
+</script>
+</body>
+</html>

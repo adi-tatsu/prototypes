@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tatsu Works — Prototypes</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --e1: #fff7e6;
+    --e2: #ead1b8;
+    --e3: #cea98e;
+    --e4: #b0896b;
+    --e5: #8d705b;
+    --e6: #6c5548;
+    --g6: #212c3c;
+    --orange: #e07b39;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--g6);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    gap: 48px;
+  }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--e4);
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--e1);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--e4);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
+    gap: 20px;
+    width: 100%;
+    max-width: 760px;
+  }
+
+  .card {
+    background: linear-gradient(160deg, var(--e6), var(--e5));
+    border: 2px solid var(--e4);
+    border-radius: 20px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-decoration: none;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    cursor: pointer;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--orange);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--orange);
+  }
+
+  .card-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,247,230,0.08);
+    border: 1px solid var(--e4);
+    border-radius: 100px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--e3);
+    width: fit-content;
+  }
+
+  .card-tag .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--orange);
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--e1);
+    line-height: 1.2;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--e3);
+    line-height: 1.6;
+  }
+
+  .card-cta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--orange);
+    margin-top: auto;
+  }
+
+  .card-cta svg {
+    transition: transform 0.18s ease;
+  }
+
+  .card:hover .card-cta svg {
+    transform: translateX(4px);
+  }
+
+  footer {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--e5);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="eyebrow">Tatsu Works</span>
+  <h1>Prototypes</h1>
+  <p class="subtitle">Internal design explorations — Trailbound</p>
+</header>
+
+<div class="grid">
+
+  <a class="card" href="hud-screen.html">
+    <span class="card-tag"><span class="dot"></span>Latest</span>
+    <div class="card-title">HUD + Daily Login Modal</div>
+    <p class="card-desc">V3 — Full HUD shell with the daily login event modal. Includes backdrop, reward grid, and close interaction.</p>
+    <div class="card-cta">
+      Open prototype
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="#e07b39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </a>
+
+  <a class="card" href="hud-screen-v2.html">
+    <span class="card-tag">V2</span>
+    <div class="card-title">Daily Login Modal</div>
+    <p class="card-desc">V2 — Earlier iteration of the daily login event modal. Useful for comparing layout and interaction patterns.</p>
+    <div class="card-cta">
+      Open prototype
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="#e07b39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </a>
+
+</div>
+
+<footer>Tatsu Works · 2026</footer>
+
+</body>
+</html>
