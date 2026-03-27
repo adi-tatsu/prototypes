@@ -383,9 +383,9 @@
   .details-duration-item .dd-value { font-size: 14px; font-weight: 800; color: #6c5548; margin-top: 2px; }
 
   /* === Edge Case Side Panel === */
-  .edge-panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: row; font-family: 'Nunito', sans-serif; }
-  .edge-panel-drawer { width: 340px; height: 100%; background: rgba(33,44,60,0.95); border-right: 3px solid #b0896b; overflow-y: auto; padding: 16px 14px; transform: translateX(-100%); transition: transform 0.25s ease; }
-  .edge-panel.open .edge-panel-drawer { transform: translateX(0); }
+  .edge-panel { position: fixed; left: -340px; top: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: row; font-family: 'Nunito', sans-serif; transition: left 0.25s ease; }
+  .edge-panel.open { left: 0; }
+  .edge-panel-drawer { width: 340px; height: 100%; background: rgba(33,44,60,0.95); border-right: 3px solid #b0896b; overflow-y: auto; padding: 16px 14px; }
   .edge-panel-toggle { width: 36px; height: 100px; align-self: center; background: rgba(33,44,60,0.9); border: 2px solid #b0896b; border-left: none; border-radius: 0 10px 10px 0; color: #fff7e6; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Nunito', sans-serif; font-weight: 700; writing-mode: vertical-rl; letter-spacing: 1px; transition: background 0.15s; }
   .edge-panel-toggle:hover { background: rgba(108,85,72,0.9); }
   .edge-panel-title { font-size: 14px; font-weight: 800; color: #faf093; text-shadow: 0 1px 3px rgba(0,0,0,0.35); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid rgba(176,137,107,0.4); }
